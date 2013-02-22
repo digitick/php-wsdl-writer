@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="Test" targetNamespace="http://127.0.0.1/soap/myNameSpace" xmlns:tns="http://127.0.0.1/soap/myNameSpace" xmlns:impl="http://127.0.0.1/soap/myNameSpace" xmlns:xsd1="http://127.0.0.1/soap/myNameSpace" xmlns:xsd="http://www.w3.org/2000/10/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns="http://schemas.xmlsoap.org/wsdl/"/>

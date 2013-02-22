@@ -1,0 +1,33 @@
+
+WSDL Writer
+
+INSTALL
+
+1) untar WSDL Writer package:
+
+    tar xzvf wsdl-writer_X.X.tgz
+
+2) Optional - rename the wsdl-writer directory:
+
+    mv wsdl-writer-X.X wsdl-writer
+
+3) Create a symlink to the wsdl bin script:
+
+    cd /usr/local/bin
+    ln -s /path/to/wsdl-writer/bin/wsdl wsdl
+
+  Now you should be able to run wsdl on your
+  favorite class to kick start you web service!
+
+EXAMPLE
+
+In this Example you have created a class named
+'MyClassName' the class file must be named
+'MyClassName.inc' or 'MyClassName.php' you must
+provide a URL for the 'Soap Name Space' you
+can optionally define the name of the generated
+WSDL file and the name of the 'Soap End Point'.
+The 'Soap End Point' should be a simple script
+to envoke the SoapServer
+
+wsdl MyClassName.php http://my.domain/soap/dir/ MyService.wsdl MyService.php

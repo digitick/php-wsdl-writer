@@ -1,0 +1,18 @@
+#!/usr/local/bin/php
+<?php
+/**
+ * @package  wsdl.writer
+ *
+ * @version   $$
+ * @author    David Giffin <david@giffin.org>
+ * @since     PHP 5.0.2
+ * @copyright Copyright (c) 2000-2005 David Giffin : LGPL - See LICENCE
+ *
+ */
+
+require_once("classes/Wsdl.php");
+
+$wsdl = new Wsdl();
+$wsdl->main($argv);
+
+?>
