@@ -1,4 +1,3 @@
-
 PHP WSDL Writer
 ============
 
@@ -6,9 +5,11 @@ WSDL Writer generates WSDL XML documents from PHP 5 classes.
 
 ###History
 
-The original version this library was created by David Giffin.
+The [original version](http://www.giffin.org/wsdlwriter.php)
+of this library was created by David Giffin.
 
-Corrections and updates were added later by Katy.
+Corrections and updates were added later by
+[Katy](http://katyscode.wordpress.com/2006/07/27/automatic-wsdl-generation-in-php-5/).
 
 We've also made some minor corrections and updates.
 
