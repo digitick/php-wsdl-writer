@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/bin/env php
 <?php
 /**
  * @package  wsdl.writer
@@ -10,7 +10,7 @@
  *
  */
 
-require_once("classes/Wsdl.php");
+require_once(dirname(__FILE__) . '/../classes/Wsdl.php');
 
 $wsdl = new Wsdl();
 $wsdl->main($argv);
