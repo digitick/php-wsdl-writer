@@ -3,7 +3,7 @@ PHP WSDL Writer
 
 WSDL Writer generates WSDL XML documents from PHP 5 classes.
 
-###History
+##History
 
 The [original version](http://www.giffin.org/wsdlwriter.php)
 of this library was created by David Giffin.
@@ -20,7 +20,7 @@ easily improve it.
 Patches welcome!
 
 
-###Install
+##Install
 
 After cloning the Git repository, you can create a symlink
 to the wsdl bin script:
@@ -33,7 +33,7 @@ Now you should be able to run wsdl on your
 favorite class to kick start you web service!
 
 
-###Example
+##Example
 
 In this Example you have created a class named
 'MyClassName' the class file must be named
