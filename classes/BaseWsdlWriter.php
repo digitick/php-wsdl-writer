@@ -154,8 +154,10 @@ class BaseWsdlWriter extends DomDocument
         $wsdlSequence = $this->createElement("sequence");
 
         // Create WSDL Elements
+        /* @var $elements WsdlProperty[] */
         $elements     = $wsdlType->getElements();
         foreach ($elements as &$element) {
+            /* @var $element WsdlProperty */
             $wsdlElement = $this->createElement("element");
             $wsdlElement->setAttribute("name", $element->name);
             if (WsdlType::isPrimitiveType($element->type)) {
@@ -163,7 +165,10 @@ class BaseWsdlWriter extends DomDocument
             } else {
                 $wsdlElement->setAttribute("type", "tns:" . $element->type);
             }
-
+            if($element->usage && $element->usage=='optional'){
+              $wsdlElement->setAttribute("minOccurs", "0");
+            }
+            
             // Add WSDL Element to the Sequence
             $wsdlSequence->appendChild($wsdlElement);
         }
@@ -268,8 +273,8 @@ class BaseWsdlWriter extends DomDocument
         $binding  = $this->getBinding();
 
         $definition    = $this->getDefinitionName();
-        $soapAction    = "urn:{$definition}#{$definition}Server#{$operation->name}";
-
+        $soapAction    = $this->getWsdlDefinition()->getNameSpace()."{$operation->name}";
+        
         // Create a new WSDL Operation
         $wsdlOperation = $this->createElement("operation");
         $wsdlOperation->setAttribute("name", $operation->name);
@@ -583,9 +588,12 @@ class BaseWsdlWriter extends DomDocument
      */
     public function getClassName()
     {
-        $className = $this->getWsdlDefinition()->getClassFileName();
-        $className = basename($className, ".inc");
-        $className = basename($className, ".php");
+        $className = $this->getWsdlDefinition()->getClassName();
+        if(!$className){
+          $className = $this->getWsdlDefinition()->getClassFileName();
+          $className = basename($className, ".inc");
+          $className = basename($className, ".php");
+        }
 
         return $className;
     }

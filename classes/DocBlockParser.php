@@ -22,11 +22,11 @@ class DocBlockParser
 
     private static $docBlockTags = array(
                 "@param" => array(
-                                "regex"   => "|@param\s+([a-zA-Z0-9\[\]]+)\s+\\\$([a-zA-Z0-9]+)\s+(.*)|",
-                                "matches" => array("type", "name", "desc")
+                                "regex"   => "#@param\s+([_a-zA-Z0-9\[\]]+)\s+\\\$([_a-zA-Z0-9]+)(\=null|)\s+(.*)#",
+                                "matches" => array("type", "name", "optional", "desc")
                                 ),
                 "@return" => array(
-                                "regex"   => "|@return\s+([a-zA-Z0-9\[\]]+)\s+(.*)|",
+                                "regex"   => "|@return\s+([_a-zA-Z0-9\[\]]+)\s+(.*)|",
                                 "matches" => array("type", "desc")
                                 ),
                 "@author" => array(
@@ -37,14 +37,16 @@ class DocBlockParser
                                 "regex"   => "|@internal\s+(.*)|",
                                 "matches" => array("usage")
                                 ),
+                "@var" => array(
+                                "regex"   => "|@var\s+([_a-zA-Z0-9\[\]]+)\s+(.*)|",
+                                "matches" => array("type", "desc")
+                                )
                 );
 
     /**
      * Get the Type and Description Information for a Property
      *
-     * @param string $name The name of the Property
-     * @param string $className the name file which contains
-     *                the Class that the property is defined
+     * @param ReflectionProperty $property  The reflected property
      */
     public static function getPropertyInfo(ReflectionProperty $property)
     {
@@ -52,12 +54,23 @@ class DocBlockParser
         $commentLine = $property->getDocComment();
 
         if (strlen($commentLine)) {
-            if (preg_match("|/\*\*\s+@var\s+([a-zA-Z0-9\[\]]+)([^(\*/)]*)\*/|", $commentLine, $matches)) {
-                $info['type'] = $matches[1];
-                if (isset($matches[2])) {
-                    $info['desc'] = $matches[2];
+            // parse docblock
+            $taginfoarr=self::getTagInfo($commentLine);
+            $info=array();
+            // flatten the parsed data
+            foreach($taginfoarr as $taginfo){
+              foreach($taginfo as $tag => $tagdata){
+                foreach($tagdata as $key => $value){
+                  if($value){
+                    // trim value because it can contain newlines etc
+                    $info[$key]=trim($value);
+                  }
                 }
-                return $info;
+              }
+            }
+            // if we found the type, return
+            if(isset($info['type'])){
+              return $info;
             }
         }
         return null;
@@ -72,7 +85,7 @@ class DocBlockParser
     public static function getDescription($doc)
     {
         $tagRegex = self::getTagRegex();
-        $lines    = split("\n", self::stripCommentChars($doc));
+        $lines    = explode("\n", self::stripCommentChars($doc));
         $desc     = "";
 
         foreach ($lines as $line) {
@@ -101,8 +114,8 @@ class DocBlockParser
         $currentTag   = null;
 
         // Do a Line at a time
-        $lines = split("\n", self::stripCommentChars($doc));
-
+        $lines = explode("\n", self::stripCommentChars($doc));
+        
         for ($i = 0, $c = count($lines); $i < $c; $i++) {
 
             // Loop through the Doc Tag list and Find Matches
@@ -156,7 +169,7 @@ class DocBlockParser
     private static function stripCommentChars($doc)
     {
         $out = "";
-        $lines = split("\n", $doc);
+        $lines = explode("\n", $doc);
         foreach ($lines as $line) {
             $line = preg_replace("|^\s*/\**|", "", $line);
             $line = preg_replace("|^\s*\**|",  "", $line);

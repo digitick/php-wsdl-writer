@@ -47,7 +47,7 @@ class WsdlWriter extends BaseWsdlWriter
         $wsdlMethods = $this->getMethods($className);
 
         // Find the Complex Types
-        $complexTypes = WsdlType::getComplexTypes($wsdlMethods);
+        $complexTypes = WsdlType::getComplexTypes($wsdlMethods, $this->getWsdlDefinition()->getTypeMapping());
 
         foreach ($complexTypes as &$complexType) {
             $this->addComplexType($complexType);
@@ -79,7 +79,10 @@ class WsdlWriter extends BaseWsdlWriter
 			|| substr($method->getName(), 0, 2) == '__') {
                 continue;
             }
-            $wsdlMethods[] = $this->getWsdlMethod($method);
+            // print "Found Method: " . $method->getName() . "\n";
+            $wsdlmethod=$this->getWsdlMethod($method);
+            if(is_null($wsdlmethod)) continue;
+            $wsdlMethods[] = $wsdlmethod;
         }
 
 		foreach ($wsdlMethods as $wsdlMethod)
@@ -101,7 +104,8 @@ class WsdlWriter extends BaseWsdlWriter
         $wsdlMethod = new WsdlMethod();
         $wsdlMethod->setName($method->getName());
         $wsdlMethod->setDesc(DocBlockParser::getDescription($doc));
-
+        $wsdlMethod->setTypeMappings($this->getWsdlDefinition()->getTypeMapping());
+        
         $params = DocBlockParser::getTagInfo($doc);
 
         for ($i = 0, $c = count($params); $i < $c; $i++) {
@@ -114,15 +118,18 @@ class WsdlWriter extends BaseWsdlWriter
                         break;
                     case "@return":
                         $wsdlMethod->setReturn($param['type'], $param['desc']);
-						break;
-					case "@internal":
-						if (trim(strtolower($param['usage'])) == 'soapheader')
-							$wsdlMethod->setIsHeader(true);
-
-						if (substr(trim(strtolower($param['usage'])), 0, 13) == 'soaprequires ')
-							$wsdlMethod->setRequiredHeaders(explode(' ', substr(trim($param['usage']), 13)));
-
-						break;
+                      break;
+                    case "@internal":
+                      if (trim(strtolower($param['usage'])) == 'ignore')
+                        return null;
+                        
+                      if (trim(strtolower($param['usage'])) == 'soapheader')
+                        $wsdlMethod->setIsHeader(true);
+                        
+                      if (substr(trim(strtolower($param['usage'])), 0, 13) == 'soaprequires ')
+                        $wsdlMethod->setRequiredHeaders(explode(' ', substr(trim($param['usage']), 13)));
+                      
+                      break;
                     default:
                         break;
                 }

@@ -20,12 +20,13 @@ require_once("WsdlProperty.php");
  */
 class WsdlType
 {
-
+    // see http://www.w3schools.com/Schema/schema_dtypes_string.asp for starting point on data types
     // The List of Primitive WSDL Types
-    private static $primitives    = array('string', 'int', 'array', 'boolean', 'base64binary' );
-    private static $badTypes      = array('mixed', '');
-
+    private static $primitives    = array("string", "int", "array", "boolean", "base64binary", "binary", "float", "date", "time", "datetime" );
+    private static $badTypes      = array("mixed", "");
+    
     private $className  = null;
+    private $orgClassName  = null;
     private $properties = array();
     private $isArray    = false;
 
@@ -34,12 +35,21 @@ class WsdlType
      * The Name of the Class
      *
      *
+     * @param string $className The Name of the Type
+     * @param string $unmappedClassName If the name of the type was mapped, set this to the original name
      */
-    public function __construct($className)
+    public function __construct($className, $unmappedClassName=null)
     {
         if (self::isArrayTypeClass($className)) {
             $className = self::stripArrayNotation($className);
             $this->isArray = true;
+        }
+        if(!is_null($unmappedClassName)){
+          if($this->isArray){
+            $this->orgClassName = self::stripArrayNotation($unmappedClassName);
+          }else{
+            $this->orgClassName = $unmappedClassName;
+          }
         }
         $this->className  = $className;
     }
@@ -73,6 +83,19 @@ class WsdlType
         }
         return "ArrayOf{$typeName}";
     }
+
+ 
+    /**
+     * Strip the Array syntax from the Class Name
+     *
+     * @param string $className The Array Type Class Name
+     * @return string The class name without the array notation
+     */
+    public static function stripArrayNotation($className)
+    {
+        return substr($className, 0, (strlen($className) - 2));
+    }
+
 
 
     /**
@@ -116,7 +139,7 @@ class WsdlType
     /**
      * Get The Elements for this Type
      *
-     * @return array The list of element objects
+     * @return WsdlProperty[] The list of element objects
      */
     public function getElements()
     {
@@ -179,12 +202,14 @@ class WsdlType
      * array of WsdlTypes for them...
      *
      * @param  array The array of WsdlMethods
+     * @param  array Optional assoc array of classmappings
      * @return array The array of WsdlTypes
      */
-    public static function getComplexTypes(&$wsdlMethods)
+    public static function getComplexTypes(&$wsdlMethods, $classMappings=array())
     {
         $wsdlTypes = array();
         $argumentTypes = array();
+        $invertedClassMappings = array_flip($classMappings);
 
         // Find the types used as arguments and return parameters to each SOAP method
         foreach ($wsdlMethods as &$method) {
@@ -207,11 +232,15 @@ class WsdlType
 
         // Recurse through each argument and return parameter for each method
         // to build a complete list of complexTypes required by all methods
-        $complexTypes = self::findComplexTypes($argumentTypes, array());
-
+        $complexTypes = self::findComplexTypes($argumentTypes, array(), $invertedClassMappings);
+        
         // Create WSDL type list
         foreach ($complexTypes as $complexType) {
-            $wsdlTypes[] = new WsdlType($complexType);
+            $orgClassName = null;
+            if(array_key_exists($complexType,$invertedClassMappings)){
+              $orgClassName = $invertedClassMappings[$complexType];
+            }
+            $wsdlTypes[] = new WsdlType($complexType, $orgClassName);
         }
         return $wsdlTypes;
     }
@@ -225,11 +254,12 @@ class WsdlType
     /**
      * Get the WSDL Properties from the Class File
      *
-     * @return array An array of properties
+     * @return WsdlProperty[] An array of properties
      */
     private function getProperties()
     {
-        $reflect        = new ReflectionClass($this->className);
+        $classname = (is_null($this->orgClassName)? $this->className : $this->orgClassName);
+        $reflect        = new ReflectionClass($classname);
         $properties     = $reflect->getProperties();
         $wsdlProperties = array();
 
@@ -247,7 +277,7 @@ class WsdlType
      * Get information for a Property
      *
      * @param  ReflectionProperty $property The property to get Information for
-     * @return WsdlService  The Service Information object
+     * @return WsdlProperty  The Service Information object
      */
     private static function getWsdlProperty(ReflectionProperty $property)
     {
@@ -262,22 +292,15 @@ class WsdlType
         $wsdlProperty->setName($property->getName());
         $wsdlProperty->setType($propertyInfo['type']);
         $wsdlProperty->setDesc($propertyInfo['desc']);
+        if (isset($propertyInfo['optional'])){
+          $wsdlProperty->setUsage("optional");
+        }
+        if (isset($propertyInfo['usage'])){
+          $wsdlProperty->setUsage($propertyInfo['usage']);
+        }
 
         return $wsdlProperty;
     }
-
-
-    /**
-     * Strip the Array syntax from the Class Name
-     *
-     * @param string $className The Array Type Class Name
-     * @return string The class name without the array notation
-     */
-    private static function stripArrayNotation($className)
-    {
-        return substr($className, 0, (strlen($className) - 2));
-    }
-
 
     /**
      * Find all types needed to fully define the specified types and their properties
@@ -290,9 +313,10 @@ class WsdlType
      *
      * @param array $types List of types to iterate over
      * @param array $foundTypes List of types discovered so far
+     * @param array $invertedClassMappings Assoc array of class mappings $type => $org_classname
      * @return array List of types required to fully define all the types in $types
      */
-    private static function findComplexTypes(&$types, $foundTypes)
+    private static function findComplexTypes(&$types, $foundTypes, $invertedClassMappings=array())
     {
         // Iterate over each type
         foreach ($types as $type) {
@@ -309,7 +333,8 @@ class WsdlType
                 // Process objects only - not arrays
                 if (!self::isArrayTypeClass($type))
                 {
-                    $reflect        = new ReflectionClass($type);
+                  $classname = (array_key_exists($type,$invertedClassMappings)? $invertedClassMappings[$type] : $type);
+                    $reflect        = new ReflectionClass($classname);
                     $properties     = $reflect->getProperties();
                     $searchTypes    = array();
 
@@ -322,7 +347,7 @@ class WsdlType
 
                     // Iterate over all the found types to search their properties etc.
                     if (count($searchTypes)) {
-                        $foundTypes = self::findComplexTypes($searchTypes, $foundTypes);
+                        $foundTypes = self::findComplexTypes($searchTypes, $foundTypes, $invertedClassMappings);
                     }
                 }
 
@@ -331,7 +356,7 @@ class WsdlType
                 // referenced anywhere else
                 else {
                     $searchTypes = array(self::stripArrayNotation($type));
-                    $foundTypes = self::findComplexTypes($searchTypes, $foundTypes);
+                    $foundTypes = self::findComplexTypes($searchTypes, $foundTypes, $invertedClassMappings);
                 }
             }
         }
