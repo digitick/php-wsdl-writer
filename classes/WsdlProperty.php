@@ -23,6 +23,7 @@ class WsdlProperty
     public $type               = null;
     public $name               = null;
     public $description        = null;
+    public $usage              = null;
 
 
     public function setName($name)
@@ -43,6 +44,11 @@ class WsdlProperty
     public function setDesc($desc)
     {
         $this->description = $desc;
+    }
+
+    public function setUsage($usage)
+    {
+        $this->usage = $usage;
     }
 
 }

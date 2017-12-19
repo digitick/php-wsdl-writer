@@ -10,6 +10,7 @@
  */
 
 require_once("WsdlPart.php");
+require_once("WsdlType.php");
 
 /**
  * WSDL Generator for PHP5
@@ -25,6 +26,8 @@ class WsdlMethod
     private $desc        = null;
     private $header      = false;
     private $reqHeaders  = array();
+    
+    private $typeMapping = array();
 
     private $params      = array();
     private $returnType  = null;
@@ -58,6 +61,16 @@ class WsdlMethod
     public function setDesc($desc)
     {
         $this->desc = $desc;
+    }
+
+    /**
+     * Set the Description of the Method
+     *
+     * @param string[] $mapping Assoc array with type mapping old => new
+     */
+    public function setTypeMappings($mapping)
+    {
+        $this->typeMapping = $mapping;
     }
 
     /**
@@ -122,7 +135,17 @@ class WsdlMethod
     public function addParameter($varType, $varName, $varDesc)
     {
         $param = new StdClass();
-
+        if (WsdlType::isArrayTypeClass($varType)) {
+          $varTypeCheck = WsdlType::stripArrayNotation($varType);
+          if(array_key_exists($varTypeCheck,$this->typeMapping)){
+            $varType = $this->typeMapping[$varTypeCheck].'[]';
+          }
+        }else{
+          if(array_key_exists($varType,$this->typeMapping)){
+            $varType = $this->typeMapping[$varType];
+          }
+        }
+        
         $param->type = $varType;
         $param->name = $varName;
         $param->desc = $varDesc;
@@ -138,6 +161,17 @@ class WsdlMethod
      */
     public function setReturn($varType, $varDesc)
     {
+        if (WsdlType::isArrayTypeClass($varType)) {
+          $varTypeCheck = WsdlType::stripArrayNotation($varType);
+          if(array_key_exists($varTypeCheck,$this->typeMapping)){
+            $varType = $this->typeMapping[$varTypeCheck].'[]';
+          }
+        }else{
+          if(array_key_exists($varType,$this->typeMapping)){
+            $varType = $this->typeMapping[$varType];
+          }
+        }
+        
         $this->returnType = $varType;
         $this->returnDesc = $varDesc;
     }

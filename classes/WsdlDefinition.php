@@ -26,7 +26,10 @@ class WsdlDefinition
     /** @var string */
     private $classFileName;
 
+    /** @var string */
+    private $className;
 
+ 
     /** @var string */
     private $wsdlFileName;
 
@@ -46,8 +49,10 @@ class WsdlDefinition
     /** @var string */
     private $baseUrl;
 
-
-
+    /** @var string[] */
+    private $typeMapping = array();
+    
+ 
     /**
      * Get the value of classFileName
      *
@@ -56,6 +61,26 @@ class WsdlDefinition
     public function getClassFileName()
     {
         return $this->classFileName;
+    }
+
+    /**
+     * Set the value of className
+     *
+     * @param string $className The value of className
+     */
+    public function setClassName($className)  
+    {
+        $this->className = $className;
+    }
+
+    /**
+     * Get the value of className
+     *
+     * @return string The value of className
+     */
+    public function getClassName()  
+    {
+        return $this->className;
     }
 
     /**
@@ -172,6 +197,27 @@ class WsdlDefinition
     public function setBaseUrl($baseUrl)
     {
         $this->baseUrl = $baseUrl;
+    }
+
+ 
+    /**
+     * Get the value of typeMapping
+     *
+     * @return string[] The typeMapping as assoc array
+     */
+    public function getTypeMapping()  
+    {
+        return $this->typeMapping;
+    }
+
+    /**
+     * Set the value of typeMapping
+     *
+     * @param string[] $mapping The value of typeMapping
+     */
+    public function setTypeMapping($mapping)  
+    {
+        $this->typeMapping = $mapping;
     }
 
 }
