@@ -1,0 +1,10 @@
+{
+    "name": "digitick/php-wsdl-writer",
+    "description": "WSDL Writer generates WSDL XML documents from PHP 5 classes.",
+    "type": "library",
+    "license": "LGPL-2.1-only",
+    "minimum-stability": "dev",
+    "require": {
+    	"php": ">=5.0"
+    }
+}
